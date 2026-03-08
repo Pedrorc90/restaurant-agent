@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "Restaurant Agent API",
+    "_postman_id": "restaurant-agent-collection",
+    "description": "Collection para probar los endpoints del Restaurant Agent (Priorities 1, 2, 3 y 4)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "session-test-001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica que el servidor está corriendo."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "POST /chat — trigger get_menu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"¿Qué tienen de menú?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Claude debe llamar la tool get_menu y responder con los datos de BD."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — trigger get_opening_hours",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"¿A qué hora cierran?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Claude debe llamar la tool get_opening_hours y responder con horarios y reglas del negocio."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — trigger get_order_status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"¿Dónde está mi pedido?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Claude debe llamar get_order_status con el sessionId actual. Primero crea un pedido con POST /orders usando el mismo sessionId."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — trigger place_order (confirmar pedido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Quiero 1 pollo asado y 1 agua. Sí, confirmo el pedido.\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Claude debe llamar place_order cuando el cliente confirma. Verifica en GET /orders/:sessionId que el pedido fue guardado."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — mensaje simple",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hola, ¿qué platos tenéis disponibles?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Envía un mensaje al agente. Devuelve reply, sessionId y messageCount."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — continuar conversación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"¿Tenéis opciones vegetarianas?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Segunda vuelta con el mismo sessionId para probar la memoria multi-sesión (Priority 1)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — nueva sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Quiero hacer una reserva para 4 personas el viernes.\",\n  \"sessionId\": \"session-cliente-b\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Sesión independiente para verificar aislamiento entre sesiones (Priority 1)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — streaming SSE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Cuéntame el menú del día con detalle.\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"stream\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Activa el modo streaming SSE. La respuesta llega como eventos 'data: {...delta}' y termina con 'data: [DONE]'."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — validación fallida (sin message)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Debe devolver 400 porque falta el campo 'message' (prueba del middleware validate)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Session",
+      "item": [
+        {
+          "name": "GET /session — listar sesiones activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/session",
+              "host": ["{{baseUrl}}"],
+              "path": ["session"]
+            },
+            "description": "Devuelve la lista de sessionIds activos en memoria (Priority 1 + 3)."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /session/:id — borrar sesión",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/session/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["session", "{{sessionId}}"]
+            },
+            "description": "Elimina el historial de la sesión indicada. Devuelve 204 No Content."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /session/:id — sesión inexistente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/session/sesion-que-no-existe",
+              "host": ["{{baseUrl}}"],
+              "path": ["session", "sesion-que-no-existe"]
+            },
+            "description": "Verifica el comportamiento al borrar una sesión que no existe."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "POST /orders — crear pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"items\": [\n    { \"name\": \"Pollo asado (medio)\", \"qty\": 1, \"price\": 12.00 },\n    { \"name\": \"Agua\", \"qty\": 1, \"price\": 1.00 }\n  ],\n  \"total\": 13.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            },
+            "description": "Crea un pedido manualmente para el sessionId indicado. Útil para preparar el estado antes de probar get_order_status."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:sessionId — consultar pedido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{sessionId}}"]
+            },
+            "description": "Devuelve el último pedido de la sesión. Útil para verificar que place_order o POST /orders funcionaron correctamente."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:sessionId — sesión sin pedido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Debe devolver 404 porque no hay pedido para esa sesión."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders — validación fallida (sin items)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"total\": 13.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            },
+            "description": "Debe devolver 400 porque falta el campo 'items'."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

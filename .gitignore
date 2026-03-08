@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+data/
+.idea/
+
+BUSINESS_PLAN.md
+TECHNICAL_ROADMAP.md
