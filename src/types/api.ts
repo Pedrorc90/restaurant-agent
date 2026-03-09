@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const chatRequestSchema = z.object({
   message: z.string().min(1),
-  sessionId: z.string().uuid(),
+  sessionId: z.string().uuid().optional(),
+  sessionToken: z.string().optional(),
   stream: z.boolean().optional().default(false),
 });
 
@@ -11,6 +12,7 @@ export type ChatRequest = z.infer<typeof chatRequestSchema>;
 export interface ChatResponse {
   reply: string;
   sessionId: string;
+  sessionToken: string;
   messageCount: number;
 }
 
@@ -22,6 +24,7 @@ export const orderItemSchema = z.object({
 
 export const createOrderSchema = z.object({
   sessionId: z.string().uuid(),
+  sessionToken: z.string(),
   items: z.array(orderItemSchema).min(1),
   total: z.number().positive(),
 });

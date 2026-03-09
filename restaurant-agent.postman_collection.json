@@ -13,7 +13,22 @@
     },
     {
       "key": "sessionId",
-      "value": "session-test-001",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminKey",
+      "value": "your-admin-key-here",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "la-cazuela",
       "type": "string"
     }
   ],
@@ -41,18 +56,71 @@
       "name": "Chat",
       "item": [
         {
+          "name": "POST /chat — nueva sesión (sin sessionId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.sessionId) pm.collectionVariables.set('sessionId', json.sessionId);",
+                  "if (json.sessionToken) pm.collectionVariables.set('sessionToken', json.sessionToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hola, ¿qué platos tenéis disponibles?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Primera llamada sin sessionId. El servidor genera sessionId + sessionToken y los guarda en variables de colección automáticamente."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — continuar conversación",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"¿Tenéis opciones vegetarianas?\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Segunda vuelta con el mismo sessionId+sessionToken. Requiere haber ejecutado 'nueva sesión' primero."
+          },
+          "response": []
+        },
+        {
           "name": "POST /chat — trigger get_menu",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"¿Qué tienen de menú?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              "raw": "{\n  \"message\": \"¿Qué tienen de menú?\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
@@ -68,14 +136,12 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"¿A qué hora cierran?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              "raw": "{\n  \"message\": \"¿A qué hora cierran?\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
@@ -91,21 +157,19 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"¿Dónde está mi pedido?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              "raw": "{\n  \"message\": \"¿Dónde está mi pedido?\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
               "host": ["{{baseUrl}}"],
               "path": ["chat"]
             },
-            "description": "Claude debe llamar get_order_status con el sessionId actual. Primero crea un pedido con POST /orders usando el mismo sessionId."
+            "description": "Claude llama get_order_status usando el sessionId de la sesión actual (ya no acepta session_id externo). Crea un pedido primero con POST /orders."
           },
           "response": []
         },
@@ -114,14 +178,12 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Quiero 1 pollo asado y 1 agua. Sí, confirmo el pedido.\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              "raw": "{\n  \"message\": \"Quiero 1 pollo asado y 1 agua. Sí, confirmo el pedido.\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
@@ -133,98 +195,45 @@
           "response": []
         },
         {
-          "name": "POST /chat — mensaje simple",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"Hola, ¿qué platos tenéis disponibles?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/chat",
-              "host": ["{{baseUrl}}"],
-              "path": ["chat"]
-            },
-            "description": "Envía un mensaje al agente. Devuelve reply, sessionId y messageCount."
-          },
-          "response": []
-        },
-        {
-          "name": "POST /chat — continuar conversación",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"¿Tenéis opciones vegetarianas?\",\n  \"sessionId\": \"{{sessionId}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/chat",
-              "host": ["{{baseUrl}}"],
-              "path": ["chat"]
-            },
-            "description": "Segunda vuelta con el mismo sessionId para probar la memoria multi-sesión (Priority 1)."
-          },
-          "response": []
-        },
-        {
-          "name": "POST /chat — nueva sesión",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"Quiero hacer una reserva para 4 personas el viernes.\",\n  \"sessionId\": \"session-cliente-b\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/chat",
-              "host": ["{{baseUrl}}"],
-              "path": ["chat"]
-            },
-            "description": "Sesión independiente para verificar aislamiento entre sesiones (Priority 1)."
-          },
-          "response": []
-        },
-        {
           "name": "POST /chat — streaming SSE",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "text/event-stream"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "text/event-stream" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"Cuéntame el menú del día con detalle.\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"stream\": true\n}"
+              "raw": "{\n  \"message\": \"Cuéntame el menú del día con detalle.\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\",\n  \"stream\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
               "host": ["{{baseUrl}}"],
               "path": ["chat"]
             },
-            "description": "Activa el modo streaming SSE. La respuesta llega como eventos 'data: {...delta}' y termina con 'data: [DONE]'."
+            "description": "Activa el modo streaming SSE. La respuesta llega como eventos 'data: {...delta}' y termina con 'data: [DONE]'. El sessionToken también se devuelve en headers X-Session-ID y X-Session-Token."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /chat — 401 token inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Intento acceder a sesión ajena\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"token-falso-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"]
+            },
+            "description": "Debe devolver 401 UNAUTHORIZED porque el sessionToken no corresponde al sessionId."
           },
           "response": []
         },
@@ -233,21 +242,19 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sessionId\": \"{{sessionId}}\"\n}"
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/chat",
               "host": ["{{baseUrl}}"],
               "path": ["chat"]
             },
-            "description": "Debe devolver 400 porque falta el campo 'message' (prueba del middleware validate)."
+            "description": "Debe devolver 400 porque falta el campo 'message'."
           },
           "response": []
         }
@@ -257,44 +264,68 @@
       "name": "Session",
       "item": [
         {
-          "name": "GET /session — listar sesiones activas",
+          "name": "GET /session — listar sesiones (admin)",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-Admin-Key", "value": "{{adminKey}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/session",
               "host": ["{{baseUrl}}"],
               "path": ["session"]
             },
-            "description": "Devuelve la lista de sessionIds activos en memoria (Priority 1 + 3)."
+            "description": "Devuelve la lista de sessionIds activos. Requiere X-Admin-Key."
           },
           "response": []
         },
         {
-          "name": "DELETE /session/:id — borrar sesión",
+          "name": "GET /session — 401 sin admin key",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/session",
+              "host": ["{{baseUrl}}"],
+              "path": ["session"]
+            },
+            "description": "Debe devolver 401 porque falta X-Admin-Key."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /session/:id — borrar sesión propia",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-Session-Token", "value": "{{sessionToken}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/session/{{sessionId}}",
               "host": ["{{baseUrl}}"],
               "path": ["session", "{{sessionId}}"]
             },
-            "description": "Elimina el historial de la sesión indicada. Devuelve 204 No Content."
+            "description": "Elimina el historial de la sesión. Requiere X-Session-Token válido. Devuelve 204 No Content."
           },
           "response": []
         },
         {
-          "name": "DELETE /session/:id — sesión inexistente",
+          "name": "DELETE /session/:id — 401 sin token",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/session/sesion-que-no-existe",
+              "raw": "{{baseUrl}}/session/{{sessionId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["session", "sesion-que-no-existe"]
+              "path": ["session", "{{sessionId}}"]
             },
-            "description": "Verifica el comportamiento al borrar una sesión que no existe."
+            "description": "Debe devolver 401 porque falta X-Session-Token."
           },
           "response": []
         }
@@ -308,21 +339,19 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"items\": [\n    { \"name\": \"Pollo asado (medio)\", \"qty\": 1, \"price\": 12.00 },\n    { \"name\": \"Agua\", \"qty\": 1, \"price\": 1.00 }\n  ],\n  \"total\": 13.00\n}"
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\",\n  \"items\": [\n    { \"name\": \"Pollo asado (medio)\", \"qty\": 1, \"price\": 12.00 },\n    { \"name\": \"Agua\", \"qty\": 1, \"price\": 1.00 }\n  ],\n  \"total\": 13.00\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/orders",
               "host": ["{{baseUrl}}"],
               "path": ["orders"]
             },
-            "description": "Crea un pedido manualmente para el sessionId indicado. Útil para preparar el estado antes de probar get_order_status."
+            "description": "Crea un pedido manualmente. Requiere sessionToken válido."
           },
           "response": []
         },
@@ -330,27 +359,49 @@
           "name": "GET /orders/:sessionId — consultar pedido",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-Session-Token", "value": "{{sessionToken}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/orders/{{sessionId}}",
               "host": ["{{baseUrl}}"],
               "path": ["orders", "{{sessionId}}"]
             },
-            "description": "Devuelve el último pedido de la sesión. Útil para verificar que place_order o POST /orders funcionaron correctamente."
+            "description": "Devuelve el último pedido de la sesión. Requiere X-Session-Token válido."
           },
           "response": []
         },
         {
-          "name": "GET /orders/:sessionId — sesión sin pedido",
+          "name": "GET /orders/:sessionId — 401 sin token",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{sessionId}}"]
+            },
+            "description": "Debe devolver 401 porque falta X-Session-Token."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:sessionId — 404 sesión sin pedido",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" },
+              { "key": "X-Session-Token", "value": "{{sessionToken}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/orders/00000000-0000-0000-0000-000000000000",
               "host": ["{{baseUrl}}"],
               "path": ["orders", "00000000-0000-0000-0000-000000000000"]
             },
-            "description": "Debe devolver 404 porque no hay pedido para esa sesión."
+            "description": "Debe devolver 401 (token no corresponde al sessionId) o 404 si el token fuese válido para esa sesión vacía."
           },
           "response": []
         },
@@ -359,14 +410,12 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Tenant-ID", "value": "{{tenantId}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"total\": 13.00\n}"
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"sessionToken\": \"{{sessionToken}}\",\n  \"total\": 13.00\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/orders",

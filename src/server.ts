@@ -22,12 +22,19 @@ const AVAILABLE_MODELS: Record<string, Model> = {
 
 const model = AVAILABLE_MODELS[process.env.MODEL ?? ""] ?? "claude-haiku-4-5-20251001";
 
+if (!process.env.SESSION_SECRET) {
+  console.error("FATAL: SESSION_SECRET env var is required");
+  process.exit(1);
+}
+
 initDb();
 
 const registry = new TenantRegistry(model);
 registry.preloadAll();
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? "*" }));

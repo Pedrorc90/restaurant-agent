@@ -14,16 +14,11 @@ export const TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "get_order_status",
-    description: "Get the status of a customer's most recent order by their session ID. Call this when a customer asks about their order, delivery status, or where their food is.",
+    description: "Get the status of a customer's most recent order. Call this when a customer asks about their order, delivery status, or where their food is.",
     input_schema: {
       type: "object" as const,
-      properties: {
-        session_id: {
-          type: "string",
-          description: "The session ID of the customer whose order to look up.",
-        },
-      },
-      required: ["session_id"],
+      properties: {},
+      required: [],
     },
   },
   {
@@ -111,8 +106,7 @@ export function executeTool(
     }
 
     case "get_order_status": {
-      const lookupSession = (input.session_id as string) ?? sessionId;
-      const order = getOrderBySessionAndTenant(lookupSession, config.id);
+      const order = getOrderBySessionAndTenant(sessionId, config.id);
       if (!order) {
         return "No order found for this session.";
       }
