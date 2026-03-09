@@ -110,7 +110,7 @@ export function executeTool(
       if (!order) {
         return "No order found for this session.";
       }
-      const items = JSON.parse(order.items) as Array<{ name: string; qty: number }>;
+      const items = (() => { try { return JSON.parse(order.items) as Array<{ name: string; qty: number }>; } catch { return []; } })();
       const itemList = items.map((i) => `${i.qty}x ${i.name}`).join(", ");
       const STATUS_LABELS: Record<string, string> = {
         pending: "Pending (received, not started yet)",

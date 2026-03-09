@@ -33,7 +33,9 @@ export function ordersRouter(registry: TenantRegistry) {
       res.status(404).json({ error: "Order not found" });
       return;
     }
-    res.json({ ...order, items: JSON.parse(order.items) });
+    let parsedItems: unknown = order.items;
+    try { parsedItems = JSON.parse(order.items); } catch { /* keep raw string */ }
+    res.json({ ...order, items: parsedItems });
   });
 
   return router;

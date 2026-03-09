@@ -4,6 +4,15 @@ import { dirname } from "path";
 import type Anthropic from "@anthropic-ai/sdk";
 import type { TenantConfig } from "./types/tenant.js";
 
+function safeJsonParse<T>(value: string, fallback: T): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    console.error("safeJsonParse failed for value:", value);
+    return fallback;
+  }
+}
+
 export interface MenuItem {
   id: number;
   tenant_id: string;
@@ -191,8 +200,8 @@ function rowToTenantConfig(row: TenantRow): TenantConfig {
     deliveryRadiusKm: row.delivery_radius_km,
     minimumOrderAmount: row.minimum_order_amount,
     estimatedDeliveryMinutes: row.estimated_delivery_minutes,
-    paymentMethods: JSON.parse(row.payment_methods) as string[],
-    hours: JSON.parse(row.hours) as TenantConfig["hours"],
+    paymentMethods: safeJsonParse<string[]>(row.payment_methods, []),
+    hours: safeJsonParse<TenantConfig["hours"]>(row.hours, {}),
     whatsappNumber: row.whatsapp_number,
     systemPromptExtra: row.system_prompt_extra,
     active: row.active,
