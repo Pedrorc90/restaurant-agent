@@ -64,7 +64,6 @@ let stmtDeleteSession: Database.Statement;
 let stmtListSessions: Database.Statement;
 let stmtGetMenuItems: Database.Statement;
 let stmtGetMenuItemsForTenant: Database.Statement;
-let stmtGetOrderBySession: Database.Statement;
 let stmtGetOrderBySessionAndTenant: Database.Statement;
 
 function hasColumn(tableName: string, columnName: string): boolean {
@@ -186,7 +185,6 @@ export function initDb(): void {
   stmtListSessions  = db.prepare("SELECT session_id FROM conversations WHERE tenant_id = ? GROUP BY session_id ORDER BY MIN(created_at)");
   stmtGetMenuItems      = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE active = 1 ORDER BY id");
   stmtGetMenuItemsForTenant = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE tenant_id = ? AND active = 1 ORDER BY id");
-  stmtGetOrderBySession = db.prepare("SELECT id, session_id, tenant_id, status, items, total, created_at FROM orders WHERE session_id = ? ORDER BY id DESC LIMIT 1");
   stmtGetOrderBySessionAndTenant = db.prepare("SELECT id, session_id, tenant_id, status, items, total, created_at FROM orders WHERE session_id = ? AND tenant_id = ? ORDER BY id DESC LIMIT 1");
 }
 
@@ -338,10 +336,6 @@ export function deleteMenuItem(tenantId: string, itemId: number): boolean {
 }
 
 // ── Order functions (tenant-scoped) ──────────────────────────────────────────
-
-export function getOrderBySession(sessionId: string): Order | undefined {
-  return stmtGetOrderBySession.get(sessionId) as Order | undefined;
-}
 
 export function getOrderBySessionAndTenant(sessionId: string, tenantId: string): Order | undefined {
   return stmtGetOrderBySessionAndTenant.get(sessionId, tenantId) as Order | undefined;

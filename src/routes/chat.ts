@@ -41,13 +41,17 @@ export function chatRouter(registry: TenantRegistry) {
         res.setHeader("X-Session-Token", sessionToken);
 
         const s = await agent.chatStream(message, sessionId);
-        s.on("text", (text) => res.write(`data: ${JSON.stringify({ delta: text })}\n\n`));
+        let clientConnected = true;
+        req.on("close", () => { clientConnected = false; });
+        s.on("text", (text) => { if (clientConnected) res.write(`data: ${JSON.stringify({ delta: text })}\n\n`); });
         s.on("finalMessage", () => {
-          res.write(`data: ${JSON.stringify({ sessionId, sessionToken })}\n\n`);
-          res.write("data: [DONE]\n\n");
-          res.end();
+          if (clientConnected) {
+            res.write(`data: ${JSON.stringify({ sessionId, sessionToken })}\n\n`);
+            res.write("data: [DONE]\n\n");
+            res.end();
+          }
         });
-        s.on("error", next);
+        s.on("error", (err) => { if (clientConnected) next(err); });
       } else {
         const reply = await agent.chat(message, sessionId);
         res.json({ reply, sessionId, sessionToken, messageCount: agent.getSessionLength(sessionId) });

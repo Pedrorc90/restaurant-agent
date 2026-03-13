@@ -10,7 +10,7 @@ export function whatsappRouter(registry: TenantRegistry) {
   const router = Router();
   router.use(express.urlencoded({ extended: false }));
 
-  router.post("/", (req, res, next) => { console.log("WHATSAPP HIT", req.body); next(); }, validate(twilioWebhookSchema), async (req, res, next) => {
+  router.post("/", validate(twilioWebhookSchema), async (req, res, next) => {
     const authToken = process.env.TWILIO_AUTH_TOKEN ?? "";
     const signature = req.headers["x-twilio-signature"] as string;
     const url = `${req.protocol}://${req.get("host")}/whatsapp`;

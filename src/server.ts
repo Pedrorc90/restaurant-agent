@@ -27,6 +27,11 @@ if (!process.env.SESSION_SECRET) {
   process.exit(1);
 }
 
+if (process.env.NODE_ENV !== "development" && !process.env.TWILIO_AUTH_TOKEN) {
+  console.error("FATAL: TWILIO_AUTH_TOKEN env var is required in production");
+  process.exit(1);
+}
+
 initDb();
 
 const registry = new TenantRegistry(model);

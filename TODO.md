@@ -3,10 +3,10 @@
 ## P0 — Blockers (fix before launch)
 
 - [X] **Cross-session leakage** — `sessionId` comes from client without ownership validation. Any user can read another user's conversation. (`src/routes/chat.ts`, `src/tools.ts`)
-- [ ] **Twilio auth** — If `TWILIO_AUTH_TOKEN` is missing from `.env`, the webhook is wide open. Add startup validation. (`src/routes/whatsapp.ts`)
-- [ ] **ChatStream persistence** — If client disconnects during streaming, message is never saved and conversation history gets corrupted. (`src/agent.ts`)
+- [X] **Twilio auth** — If `TWILIO_AUTH_TOKEN` is missing from `.env`, the webhook is wide open. Add startup validation. (`src/routes/whatsapp.ts`)
+- [X] **ChatStream persistence** — If client disconnects during streaming, message is never saved and conversation history gets corrupted. (`src/agent.ts`)
 - [X] **JSON.parse without try-catch** — A corrupted DB row crashes the entire process. Wrap all `JSON.parse` calls. (`src/db.ts`, `src/tools.ts`)
-- [ ] **`getOrderBySession` missing tenant filter** — A tenant can read orders from another tenant. Real isolation bug. (`src/db.ts:333`)
+- [X] **`getOrderBySession` missing tenant filter** — A tenant can read orders from another tenant. Real isolation bug. (`src/db.ts:333`)
 
 ## P1 — High priority (sprint 1)
 
