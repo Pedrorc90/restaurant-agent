@@ -29,6 +29,6 @@
 
 ## P3 — Low priority (tech debt)
 
-- [ ] **No tenant filter in some DB queries** — Audit all DB functions for missing `tenant_id` filters.
-- [ ] **No supported language validation** — `language` field accepts any string but system prompt only handles a subset. (`src/types/api.ts:51`)
-- [ ] **No API error code documentation** — Specify which error code is returned in which case.
+- [X] **No tenant filter in some DB queries** — Removed `getMenuItems()` (no tenant filter, unused). All active DB functions have tenant isolation.
+- [X] **No supported language validation** — `language` now uses `z.enum(["es","en","pt","fr","it","de"])`. (`src/types/api.ts`)
+- [X] **No API error code documentation** — Added `docs/error-codes.md` with full code → HTTP status → cause table. Added `TENANT_NOT_FOUND` to `ErrorResponse` type.

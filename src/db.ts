@@ -63,7 +63,6 @@ let stmtTrimSession: Database.Statement;
 let stmtDeleteSession: Database.Statement;
 let stmtListSessions: Database.Statement;
 let stmtCountSessions: Database.Statement;
-let stmtGetMenuItems: Database.Statement;
 let stmtGetMenuItemsForTenant: Database.Statement;
 let stmtGetOrderBySessionAndTenant: Database.Statement;
 
@@ -190,7 +189,6 @@ export function initDb(): void {
   stmtDeleteSession = db.prepare("DELETE FROM conversations WHERE session_id = ? AND tenant_id = ?");
   stmtListSessions  = db.prepare("SELECT session_id FROM conversations WHERE tenant_id = ? GROUP BY session_id ORDER BY MIN(created_at) LIMIT ? OFFSET ?");
   stmtCountSessions = db.prepare("SELECT COUNT(DISTINCT session_id) as total FROM conversations WHERE tenant_id = ?");
-  stmtGetMenuItems      = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE active = 1 ORDER BY id");
   stmtGetMenuItemsForTenant = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE tenant_id = ? AND active = 1 ORDER BY id");
   stmtGetOrderBySessionAndTenant = db.prepare("SELECT id, session_id, tenant_id, status, items, total, created_at FROM orders WHERE session_id = ? AND tenant_id = ? ORDER BY id DESC LIMIT 1");
 }
@@ -323,10 +321,6 @@ export function countMessages(sessionId: string, tenantId: string): number {
 }
 
 // ── Menu functions (tenant-scoped) ───────────────────────────────────────────
-
-export function getMenuItems(): MenuItem[] {
-  return stmtGetMenuItems.all() as MenuItem[];
-}
 
 export function getMenuItemsForTenant(tenantId: string): MenuItem[] {
   return stmtGetMenuItemsForTenant.all(tenantId) as MenuItem[];

@@ -33,7 +33,7 @@ export type CreateOrderRequest = z.infer<typeof createOrderSchema>;
 
 export interface ErrorResponse {
   error: string;
-  code: "VALIDATION_ERROR" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UNAUTHORIZED";
+  code: "VALIDATION_ERROR" | "RATE_LIMITED" | "INTERNAL_ERROR" | "UNAUTHORIZED" | "TENANT_NOT_FOUND";
 }
 
 export const twilioWebhookSchema = z.object({
@@ -57,7 +57,7 @@ export const tenantConfigSchema = z.object({
   name: z.string().min(1).max(100)
     .refine((v) => !/\n{3,}/.test(v), "name must not contain more than 2 consecutive newlines")
     .refine(rejectsXmlInjection, xmlInjectionMsg),
-  language: z.string().default("es"),
+  language: z.enum(["es", "en", "pt", "fr", "it", "de"]).default("es"),
   currency: z.string().default("EUR"),
   currencySymbol: z.string().default("€"),
   deliveryRadiusKm: z.number().positive().default(5),
