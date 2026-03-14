@@ -22,7 +22,7 @@ export class RestaurantAgent {
   private readonly tenantConfig: TenantConfig;
 
   constructor(config: AgentConfig) {
-    this.client = new Anthropic();
+    this.client = new Anthropic({ timeout: 30_000 });
     this.model = config.model ?? "claude-haiku-4-5-20251001";
     this.maxSessionMessages = config.maxSessionMessages ?? 100;
     this.tenantConfig = config.tenantConfig;
@@ -129,6 +129,6 @@ export class RestaurantAgent {
   }
 
   clearSession(sessionId: string): void       { deleteSession(sessionId, this.tenantConfig.id); }
-  listSessions(): string[]                    { return listSessionIds(this.tenantConfig.id); }
+  listSessions(page = 1, limit = 50)          { return listSessionIds(this.tenantConfig.id, page, limit); }
   getSessionLength(sessionId: string): number { return countMessages(sessionId, this.tenantConfig.id); }
 }

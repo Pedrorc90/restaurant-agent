@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Request, Response, NextFunction } from "express";
 import { TenantNotFoundError } from "../tenant-registry.js";
+import { logger } from "../logger.js";
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
   if (err instanceof TenantNotFoundError) {
@@ -15,6 +16,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return;
   }
 
-  console.error(err);
+  logger.error(err);
   res.status(500).json({ error: "Internal server error", code: "INTERNAL_ERROR" });
 }

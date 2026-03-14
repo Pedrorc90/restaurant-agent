@@ -1,6 +1,7 @@
 import { RestaurantAgent } from "./agent.js";
 import type { Model } from "./agent.js";
 import { getTenant, listTenants } from "./db.js";
+import { logger } from "./logger.js";
 
 export class TenantNotFoundError extends Error {
   constructor(tenantId: string) {
@@ -44,6 +45,6 @@ export class TenantRegistry {
         this.agents.set(tenant.id, agent);
       }
     }
-    console.log(`Preloaded ${this.agents.size} tenant(s): ${[...this.agents.keys()].join(", ")}`);
+    logger.info({ tenants: [...this.agents.keys()] }, `Preloaded ${this.agents.size} tenant(s)`);
   }
 }

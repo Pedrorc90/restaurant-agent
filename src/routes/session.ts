@@ -10,8 +10,10 @@ export function sessionRouter(registry: TenantRegistry) {
 
   // List sessions — admin only
   router.get("/", adminAuth, (req, res) => {
+    const page = Math.max(1, parseInt(req.query["page"] as string ?? "1", 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query["limit"] as string ?? "50", 10) || 50));
     const agent = registry.getAgent(req.tenantId);
-    res.json({ sessions: agent.listSessions() });
+    res.json(agent.listSessions(page, limit));
   });
 
   // Delete session — requires proof of ownership via session token

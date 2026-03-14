@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { initDb } from "./db.js";
+import { logger } from "./logger.js";
 import { TenantRegistry } from "./tenant-registry.js";
 import type { Model } from "./agent.js";
 import { chatRouter } from "./routes/chat.js";
@@ -35,7 +36,6 @@ if (process.env.NODE_ENV !== "development" && !process.env.TWILIO_AUTH_TOKEN) {
 initDb();
 
 const registry = new TenantRegistry(model);
-registry.preloadAll();
 
 const app = express();
 
@@ -46,14 +46,16 @@ app.use(cors({ origin: process.env.CORS_ORIGIN ?? "*" }));
 app.use(express.json({ limit: "10kb" }));
 app.use(rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false }));
 
+const adminRateLimit = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false });
+
 app.use("/health", healthRouter);
-app.use("/tenants", tenantsRouter(registry));
-app.use("/chat", chatRouter(registry));
-app.use("/session", sessionRouter(registry));
-app.use("/orders", ordersRouter(registry));
-app.use("/whatsapp", whatsappRouter(registry));
+app.use("/v1/tenants", adminRateLimit, tenantsRouter(registry));
+app.use("/v1/chat", chatRouter(registry));
+app.use("/v1/session", sessionRouter(registry));
+app.use("/v1/orders", ordersRouter(registry));
+app.use("/v1/whatsapp", whatsappRouter(registry));
 
 app.use(errorHandler);
 
 const PORT = Number(process.env.PORT ?? 3000);
-app.listen(PORT, () => console.log(`Server running on :${PORT} (model: ${model})`));
+app.listen(PORT, () => logger.info({ port: PORT, model }, "Server running"));

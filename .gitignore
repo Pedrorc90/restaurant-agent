@@ -4,5 +4,13 @@ dist/
 data/
 .idea/
 
+
+
+.claude/settings.local.json
+test-guidelines
 BUSINESS_PLAN.md
 TECHNICAL_ROADMAP.md
+playground-menu.html
+playground.html
+chat-ui.html
+

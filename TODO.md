@@ -10,22 +10,22 @@
 
 ## P1 — High priority (sprint 1)
 
-- [ ] **Debug logs in production** — `console.log("WHATSAPP HIT", req.body)` leaks user messages to stdout. GDPR risk. (`src/routes/whatsapp.ts:13`)
-- [ ] **No rate limiting on Admin API** — Global 60 req/min allows brute force on `X-Admin-Key` (86,400 attempts/day). Add specific rate limit for admin routes.
-- [ ] **No business hours enforcement** — Orders are accepted 24/7 even outside configured hours. (`src/tools.ts`, `src/menu.ts`)
-- [ ] **No pagination in `listSessions()`** — Returns all sessions in memory. OOM risk with large tenants. (`src/routes/session.ts`)
-- [ ] **Wrong error code in adminAuth** — Returns `code: "INTERNAL_ERROR"` on 401. Should be `"UNAUTHORIZED"`. (`src/middleware/adminAuth.ts:12`)
-- [ ] **Prompt injection via `systemPromptExtra`** — Tenant config accepts any string, including "Ignore all previous instructions...". Add sanitization. (`src/types/api.ts`)
+- [X] **Debug logs in production** — `console.log("WHATSAPP HIT", req.body)` leaks user messages to stdout. GDPR risk. (`src/routes/whatsapp.ts:13`)
+- [X] **No rate limiting on Admin API** — Global 60 req/min allows brute force on `X-Admin-Key` (86,400 attempts/day). Add specific rate limit for admin routes.
+- [X] **No business hours enforcement** — Orders are accepted 24/7 even outside configured hours. (`src/tools.ts`, `src/menu.ts`)
+- [X] **No pagination in `listSessions()`** — Returns all sessions in memory. OOM risk with large tenants. (`src/routes/session.ts`)
+- [X] **Wrong error code in adminAuth** — Returns `code: "INTERNAL_ERROR"` on 401. Should be `"UNAUTHORIZED"`. (`src/middleware/adminAuth.ts:12`)
+- [X] **Prompt injection via `systemPromptExtra`** — Tenant config accepts any string, including "Ignore all previous instructions...". Add sanitization. (`src/types/api.ts`)
 
 ## P2 — Medium priority (sprint 2)
 
-- [ ] **No timeout on Anthropic client** — Requests can hang indefinitely. Configure timeout.
-- [ ] **Missing DB indices** — Add indices on `orders(session_id, tenant_id)` and `menu_items(tenant_id)`.
-- [ ] **No structured logging / observability** — No way to diagnose failures in production. Add structured logs and basic metrics.
-- [ ] **No API versioning** — Breaking changes affect all clients. Prefix routes with `/v1/`.
-- [ ] **`TenantRegistry.preloadAll()` does not scale** — Loads all tenants into memory at startup. Use lazy loading or LRU cache for large deployments.
-- [ ] **Zod errors not user-friendly** — Validation error messages are generic. Improve serialization. (`src/middleware/validate.ts`)
-- [ ] **`price` minimum too low** — `z.number().positive()` allows 0.0001. Use `z.number().min(0.01)` for currency. (`src/types/api.ts:70`)
+- [X] **No timeout on Anthropic client** — Requests can hang indefinitely. Configure timeout.
+- [X] **Missing DB indices** — Add indices on `orders(session_id, tenant_id)` and `menu_items(tenant_id)`.
+- [X] **No structured logging / observability** — No way to diagnose failures in production. Add structured logs and basic metrics.
+- [X] **No API versioning** — Breaking changes affect all clients. Prefix routes with `/v1/`.
+- [X] **`TenantRegistry.preloadAll()` does not scale** — Loads all tenants into memory at startup. Use lazy loading or LRU cache for large deployments.
+- [X] **Zod errors not user-friendly** — Validation error messages are generic. Improve serialization. (`src/middleware/validate.ts`)
+- [X] **`price` minimum too low** — `z.number().positive()` allows 0.0001. Use `z.number().min(0.01)` for currency. (`src/types/api.ts:70`)
 
 ## P3 — Low priority (tech debt)
 

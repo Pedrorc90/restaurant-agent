@@ -62,6 +62,7 @@ let stmtCountMessages: Database.Statement;
 let stmtTrimSession: Database.Statement;
 let stmtDeleteSession: Database.Statement;
 let stmtListSessions: Database.Statement;
+let stmtCountSessions: Database.Statement;
 let stmtGetMenuItems: Database.Statement;
 let stmtGetMenuItemsForTenant: Database.Statement;
 let stmtGetOrderBySessionAndTenant: Database.Statement;
@@ -138,6 +139,11 @@ export function initDb(): void {
     db.exec(`ALTER TABLE orders ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'la-cazuela'`);
   }
 
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_orders_session_tenant ON orders(session_id, tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_menu_items_tenant ON menu_items(tenant_id);
+  `);
+
   // Seed default tenant if missing
   const tenantExists = db.prepare("SELECT COUNT(*) as cnt FROM tenants WHERE id = 'la-cazuela'").get() as { cnt: number };
   if (tenantExists.cnt === 0) {
@@ -182,7 +188,8 @@ export function initDb(): void {
     )
   `);
   stmtDeleteSession = db.prepare("DELETE FROM conversations WHERE session_id = ? AND tenant_id = ?");
-  stmtListSessions  = db.prepare("SELECT session_id FROM conversations WHERE tenant_id = ? GROUP BY session_id ORDER BY MIN(created_at)");
+  stmtListSessions  = db.prepare("SELECT session_id FROM conversations WHERE tenant_id = ? GROUP BY session_id ORDER BY MIN(created_at) LIMIT ? OFFSET ?");
+  stmtCountSessions = db.prepare("SELECT COUNT(DISTINCT session_id) as total FROM conversations WHERE tenant_id = ?");
   stmtGetMenuItems      = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE active = 1 ORDER BY id");
   stmtGetMenuItemsForTenant = db.prepare("SELECT id, tenant_id, category, name, price, active FROM menu_items WHERE tenant_id = ? AND active = 1 ORDER BY id");
   stmtGetOrderBySessionAndTenant = db.prepare("SELECT id, session_id, tenant_id, status, items, total, created_at FROM orders WHERE session_id = ? AND tenant_id = ? ORDER BY id DESC LIMIT 1");
@@ -303,9 +310,11 @@ export function deleteSession(sessionId: string, tenantId: string): void {
   stmtDeleteSession.run(sessionId, tenantId);
 }
 
-export function listSessionIds(tenantId: string): string[] {
-  const rows = stmtListSessions.all(tenantId) as { session_id: string }[];
-  return rows.map((r) => r.session_id);
+export function listSessionIds(tenantId: string, page = 1, limit = 50): { sessions: string[]; total: number; page: number; limit: number } {
+  const offset = (page - 1) * limit;
+  const rows = stmtListSessions.all(tenantId, limit, offset) as { session_id: string }[];
+  const { total } = stmtCountSessions.get(tenantId) as { total: number };
+  return { sessions: rows.map((r) => r.session_id), total, page, limit };
 }
 
 export function countMessages(sessionId: string, tenantId: string): number {

@@ -9,7 +9,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
 
   const provided = req.headers["x-admin-key"] as string | undefined;
   if (!provided || provided !== adminKey) {
-    res.status(401).json({ error: "Unauthorized", code: "INTERNAL_ERROR" });
+    res.status(401).json({ error: "Unauthorized", code: "UNAUTHORIZED" });
     return;
   }
 

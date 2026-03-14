@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { getMenuItemsForTenant, getOrderBySessionAndTenant, insertOrder } from "./db.js";
 import type { TenantConfig } from "./types/tenant.js";
+import { sanitizeTenantField } from "./sanitize.js";
 
 export const TOOLS: Anthropic.Tool[] = [
   {
@@ -59,6 +60,29 @@ export const TOOLS: Anthropic.Tool[] = [
   },
 ];
 
+/**
+ * Returns a closed-message string if the restaurant is currently closed, or null if open.
+ */
+export function isRestaurantOpen(config: TenantConfig): string | null {
+  const now = new Date();
+  const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const todayKey = dayNames[now.getDay()];
+  const todayHours = config.hours[todayKey];
+  if (!todayHours) return null;
+  if (todayHours.closed) {
+    return `Sorry, ${sanitizeTenantField(config.name)} is closed today (${todayKey}). We cannot accept orders right now.`;
+  }
+  const [openH, openM] = todayHours.open.split(":").map(Number);
+  const [closeH, closeM] = todayHours.close.split(":").map(Number);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const openMinutes = openH * 60 + openM;
+  const closeMinutes = closeH * 60 + closeM;
+  if (currentMinutes < openMinutes || currentMinutes >= closeMinutes) {
+    return `Sorry, ${sanitizeTenantField(config.name)} is currently closed. Our hours today are ${todayHours.open}–${todayHours.close}. We cannot accept orders right now.`;
+  }
+  return null;
+}
+
 interface OrderItem {
   name: string;
   qty: number;
@@ -85,21 +109,25 @@ export function executeTool(
 
       const byCategory: Record<string, typeof items> = {};
       for (const item of items) {
-        if (!byCategory[item.category]) byCategory[item.category] = [];
-        byCategory[item.category].push(item);
+        const safeCategory = sanitizeTenantField(item.category);
+        if (!byCategory[safeCategory]) byCategory[safeCategory] = [];
+        byCategory[safeCategory].push(item);
       }
 
       const lines: string[] = ["MENU:"];
       for (const [category, categoryItems] of Object.entries(byCategory)) {
         lines.push(`\n${category}:`);
         for (const item of categoryItems) {
-          lines.push(`  - ${item.name}: ${item.price.toFixed(2)}${sym}`);
+          const safeName = sanitizeTenantField(item.name);
+          lines.push(`  - ${safeName}: ${item.price.toFixed(2)}${sym}`);
         }
       }
       return lines.join("\n");
     }
 
     case "place_order": {
+      const closedMsg = isRestaurantOpen(config);
+      if (closedMsg) return closedMsg;
       const { items, total } = input as unknown as PlaceOrderInput;
       const orderId = insertOrder(sessionId, config.id, JSON.stringify(items), total);
       return `Order #${orderId} placed successfully. Status: pending. Total: ${total.toFixed(2)}${sym}.`;
@@ -123,7 +151,7 @@ export function executeTool(
     }
 
     case "get_opening_hours": {
-      const lines: string[] = [`${config.name} hours:`];
+      const lines: string[] = [`${sanitizeTenantField(config.name)} hours:`];
       for (const [day, h] of Object.entries(config.hours)) {
         lines.push(h.closed ? `- ${day}: closed` : `- ${day}: ${h.open} – ${h.close}`);
       }
